@@ -1,0 +1,54 @@
+# Keil MDK - Build Outputs
+*.o
+*.obj
+*.hex
+*.axf
+*.elf
+*.bin
+*.lst
+*.map
+*.crf
+*.d
+*.dep
+*.plg
+*.iex
+*.lnp
+*.htm
+*.build_log.htm
+*.tra
+*.Administrator
+
+# Keil MDK - User-specific files
+*.uvgui.*
+*.uvopt
+
+# Keil MDK - Build directories
+Listings/
+Objects/
+DebugConfig/
+RTE/
+Out_File/
+
+# Keil MDK - Preprocessor intermediate files
+.__i
+
+# Temporary files
+*.bak
+*.tmp
+*.~*
+*.swp
+*.swo
+
+# IDE
+.vs/
+.vscode/
+*.suo
+*.user
+
+# Claude Code local settings
+.claude/
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
