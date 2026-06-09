@@ -194,14 +194,12 @@ last_velocity_z=velocity_z;
 
 /////////////////
 /**
- * @description: 打印标志位启用判断
+ * @description: 打印标志位启用判断||编码器当前速度更新
  */
-if (MODE == GYRO_TEST ||MODE == Speed_Test ||MODE == MOTOR_TEST)
+if (MODE == GYRO_TEST ||MODE == SPEED_TEST ||MODE == MOTOR_TEST ||MODE == TLY_Test)
 {
-printf_flag =1;
-	
-//编码器当前速度更新
-Encoder_get_value();
+printf_flag =1;   
+Encoder_get_value();  
 }
 
 ////////////////////////	
@@ -346,14 +344,11 @@ else if(MODE==TLY_Test)
 /**
  * @description: 电机速度环测试
  */
-else if(MODE ==Speed_Test&&Speed_flag==0)
+else if(MODE ==SPEED_TEST&&Speed_flag==0)
 {
 static uint8 t_count =0;
 int Motor_L =0;   //左轮占空比
 int Motor_R =0;   //右轮占空比
-
-
-
 if(t_count ==2)
 {
    imu660ra_get_gyro();
@@ -367,16 +362,15 @@ if(t_count ==2)
    if(Distance>140000) //当累计的里程超过一定距离就停车
    {Motor_stop();}
 
-   Delay_SP++;            //采用软起动的方式，保护电机
-   if(Delay_SP>400)
-   {Speed_Test=600;}
-   else if(Delay_SP>200)
-   {Speed_Test=100;}
-   else
-   {Speed_Test=0;}
+   //采用软起动的方式，保护电机
+   if(Speed_Test <1000)
+   {Speed_Test += 10;}
 
    Motor_L =PID_Car_Speed(Speed_Test)-Car_pwm_gyro; //占空比赋值
    Motor_R =PID_Car_Speed(Speed_Test)+Car_pwm_gyro;
+    
+//	 Motor_L =2000-Car_pwm_gyro; //占空比赋值
+//   Motor_R =2000+Car_pwm_gyro;
 
    //占空比限幅
    if(Motor_L>10000)

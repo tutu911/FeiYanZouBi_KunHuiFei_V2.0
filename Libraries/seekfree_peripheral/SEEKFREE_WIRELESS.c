@@ -49,10 +49,10 @@ static  uint8   		wireless_uart_data;
 void wireless_uart_callback(void)
 {
 	uint8 wireless_uart_data;
-    //接到一个字节后单片机将会进入串口中断，通过在此处读取wireless_uart_data可以取走数据
+  //接到一个字节后单片机将会进入串口中断，通过在此处读取wireless_uart_data可以取走数据
 	wireless_uart_data = WIRELESS_DATA_BUF;
 	ips114_showuint8_simspi(0,5,wireless_uart_data);
-    fifo_write_buffer(&wireless_uart_fifo, &wireless_uart_data, 1);       // 存入 FIFO
+  fifo_write_buffer(&wireless_uart_fifo, &wireless_uart_data, 1);       // 存入 FIFO
 }
 
 

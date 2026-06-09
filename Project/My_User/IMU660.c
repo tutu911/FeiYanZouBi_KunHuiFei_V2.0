@@ -12,7 +12,7 @@ char IMU_START=0;				//是否开始解算角度
 
 void IMU_Init(void)
 {		
-Null_Shift_Z=-0.355114;		 //零漂计算值
+Null_Shift_Z=-0.323117;		 //零漂计算值
 imu660ra_init();// 陀螺仪初始化
 READY=1;
 while(READY==1);

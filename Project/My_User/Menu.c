@@ -165,8 +165,8 @@ ips114_showfloat(120,7,ADC_BAT/217.8,2,2);
 	
 //ips114_showstr(0,5,"i_data");
 //ips114_showuint16(60,5,Key_Adc);
-ips114_showstr(0,5,"Star_check");
-ips114_showuint16(85,5,Star_check);
+ips114_showstr(0,5,"Null_Shift_Z:");
+ips114_showfloat(110,5,Null_Shift_Z,4,6);
 
 }
 }

@@ -57,15 +57,16 @@ if(printf_flag==1&&MODE!=NO_ONE)
 if(MODE==MOTOR_TEST)
 {printf("%d,%d,%d\n",duty_set,R_speed,L_speed);}                //电机编码器测试打印
 else if(MODE==SPEED_TEST)
-{printf("%d,%d\n",Speed_Test,(L_speed+R_speed)/2);} //速度环测试打印
+{printf("%d,%d,%d\n",Speed_Test,(L_speed+R_speed)/2),(int16)(Null_Shift_Z*100000);} //速度环测试打印
 else if(MODE==GYRO_TEST)
 {printf("%d,%d\n",600,(int)Now_gyro);}              //角速度环测试打印
 else if(MODE==NORMAL_RUN)
 {printf("%f\n",Weight);}                            //方向环输出打印
 else if(MODE==TLY_Test)
-{printf("%f\n",Gyro_now);}                            //陀螺仪测试打印
+{printf("%f,%f\n",Gyro_now,Null_Shift_Z);}                            //陀螺仪测试打印
 printf_flag=0;          //关闭标志位，确保进入中断更新数据之后再打印
 }
+    Protocol_Process();                      //涓婁綅鏈篜ID璋冨弬澶勭悊
 	
 if(Star_check<10)         //五向按键按下的那一向：标志调试状态
 {
