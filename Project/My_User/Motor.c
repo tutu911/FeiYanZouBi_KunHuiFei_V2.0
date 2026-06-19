@@ -10,6 +10,7 @@ uint32 Distance=0;		//距离积分
 uint8  Distance_Beishu=0; // 20000的倍数
 int16 Star_check=0;		//启动标志
 uint16 V_check=0;		//电压标志
+uint8  adc_process_flag=0; //ADC post-process flag: ISR signals main loop
 int16 L_speed=0;		//左轮速度
 int16 R_speed=0;		//右轮速度
 char Encoder_flag=0;	//编码器计数标志

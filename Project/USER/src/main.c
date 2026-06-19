@@ -16,6 +16,10 @@ extern char MODE;
 extern uint8 printf_flag;
 extern int Speed_Test; 
 extern float Weight;
+extern float LQ1;
+extern float LQ2;
+extern float LQ3;
+extern uint8 adc_process_flag;
 extern float Now_gyro;
 extern float Gyro_now;
 extern uint16 duty_set;
@@ -52,6 +56,15 @@ ips114_clear(BLACK);
 
 while(1)
 {
+
+	// ADC post-processing (triggered by ISR flag)
+	if(adc_process_flag==1)
+	{
+		ADC_Average();
+		ADC_Normalizing();
+		Weight=12*(LQ1*(ADC_GYH[0]-ADC_GYH[4])+LQ2*(ADC_GYH[1]-ADC_GYH[3]))/(LQ1*(ADC_GYH[0]+ADC_GYH[4])+LQ3*fabs(ADC_GYH[1]-ADC_GYH[3]));
+		adc_process_flag=0;
+	}
 
 //Êý¾Ý´òÓ¡
 if(printf_flag==1&&MODE!=NO_ONE)

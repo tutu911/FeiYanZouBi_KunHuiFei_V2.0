@@ -21,6 +21,7 @@ extern uint32 Distance;
 extern uint8  Distance_Beishu;
 extern int16 Star_check;
 extern uint16 V_check;
+extern uint8  adc_process_flag;
 extern char Encoder_flag;
 extern float Encoder_count;
 extern int Small_Bit;

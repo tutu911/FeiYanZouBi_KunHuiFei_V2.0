@@ -202,7 +202,8 @@ last_velocity_z=velocity_z;
 if (MODE == GYRO_TEST ||MODE == SPEED_TEST ||MODE == MOTOR_TEST ||MODE == TLY_Test ||MODE == NORMAL_RUN)
 {
 printf_flag =1;   
-Encoder_get_value();  
+Encoder_get_value();
+	Distance_count();           // moved here: after encoder read, no V_check gate
 }
 
 
@@ -211,13 +212,10 @@ V_Star();
  /**
  * @description:ADC采集与元素处理
  */	
-ADC_Sample();            //采集
-ADC_Average();           //平均
-ADC_Normalizing();       //归一化
-//Cirque_Design();         //圆环
-Weight=12*(LQ1*(ADC_GYH[0]-ADC_GYH[4])+LQ2*(ADC_GYH[1]-ADC_GYH[3]))/(LQ1*(ADC_GYH[0]+ADC_GYH[4])+LQ3*fabs(ADC_GYH[1]-ADC_GYH[3]));	
+ADC_Sample();            // raw sample (post-process -> main loop)
+	adc_process_flag=1;         // signal main loop for ADC_Average/Normalizing/Weight
 
-if(V_check==1&&Star_check>10)
+if(Star_check>10)
 {
 
 //if(Fuya_Start == 0)  //负压待开启
@@ -232,7 +230,14 @@ if(Time_OK>400) //定时中断2s后负压电机稳定，开始正常工作
 
 Fuya_Ok =1;
 ADC_BAT=adc_once(ADC_P16,ADC_12BIT);
-Bat_data=ADC_BAT/217.8;	            
+Bat_data=ADC_BAT/217.8;
+
+	if(V_check==0)  // low voltage -> stop motor output, distance tracking continues
+	{
+		Motor_stop();
+	}
+	else  // normal voltage -> execute MODE control
+	{
 	
 
 if(MODE==NORMAL_RUN&&Speed_flag==0)
@@ -258,7 +263,7 @@ t_count=0;
 }
 t_count++;
  
-Distance_count();
+// Distance_count() moved to front
 if(Distance>Distance_all*10000||(ADC_GYH[0]+ADC_GYH[1]+ADC_GYH[3]+ADC_GYH[4])<10||(ADC_GYH[0]+ADC_GYH[2]+ADC_GYH[4])<10)
 {Motor_stop();}
 
@@ -302,7 +307,7 @@ static float Gyro_Get_Now=0;
 int Motor_L=0;//左轮占空比
 int Motor_R=0;//右轮占空比
 
-Distance_count();	
+// Distance_count() moved to front
 imu660ra_get_gyro ();	
 Now_gyro=(imu660ra_gyro_transition(imu660ra_gyro_z)-Null_Shift_Z);
 	
@@ -397,7 +402,7 @@ if(t_count ==2)
    PWM_SetCompareL(Motor_L);
    PWM_SetCompareR(Motor_R);   
 	 
-	 Distance_count();
+	 // Distance_count() moved to front
    if(Distance>60000) //当累计的里程超过一定距离就停车
    {Motor_stop();}
 	 
@@ -408,7 +413,7 @@ if(t_count ==2)
  */
 else if (MODE==MOTOR_TEST&&Speed_flag==0)
 {
-Distance_count();
+// Distance_count() moved to front
 if(Distance_Beishu>4) //当累计的里程超过一定距离就停车
 {Motor_stop();}
 	
@@ -435,9 +440,17 @@ Speed_flag=1;
 
 
 TIM4_CLEAR_FLAG; //清除中断标志
-
+	}  // end if(V_check==0) else
 }
 }
+	else
+	{
+	// Star_check<=10: not started -> ensure motors stopped
+	PWM_SetCompareL(0);
+	PWM_SetCompareR(0);
+	Speed_flag=1;
+	TIM4_CLEAR_FLAG;
+	}
 }
 
 //void  INT0_Isr()  interrupt 0;
