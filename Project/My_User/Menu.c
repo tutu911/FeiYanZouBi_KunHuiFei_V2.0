@@ -71,6 +71,8 @@ else if(MODE==SPEED_TEST)
 {ips114_showstr(0,6,"MODE:SPEED_TEST");}
 else if(MODE==MOTOR_TEST)
 {ips114_showstr(0,6,"MODE:MOTOR_TEST");}
+else if(MODE==TLY_Test)
+{ips114_showstr(0,6,"MODE:TLY_Test");}
 }
 
 
@@ -85,7 +87,7 @@ Key_Adc=adc_once(ADC_P10, ADC_12BIT);
     else if (Key_Adc >= 500 && Key_Adc <= 900) raw = KEY_REDUCE;
 	  else if (Key_Adc >= 3000 && Key_Adc <= 3300) raw = KEY_ENTER;
     else if (Key_Adc >= 1900 && Key_Adc <= 2200) raw = KEY_BACK;
-    else if (Key_Adc >= 50 && Key_Adc <= 400) raw = KEY_DOWN;
+    else if (Key_Adc >= 200 && Key_Adc <= 400) raw = KEY_DOWN;
     else raw = KEY_NONE;
     // 2. 连续稳定去抖（状态机）
     if (raw == last_valid_key) 
@@ -165,8 +167,8 @@ ips114_showfloat(120,7,ADC_BAT/217.8,2,2);
 	
 //ips114_showstr(0,5,"i_data");
 //ips114_showuint16(60,5,Key_Adc);
-ips114_showstr(0,5,"Null_Shift_Z:");
-ips114_showfloat(110,5,Null_Shift_Z,4,6);
+//ips114_showstr(0,5,"Null_Shift_Z:");
+//ips114_showfloat(110,5,Null_Shift_Z,4,6);
 
 }
 }
@@ -273,14 +275,14 @@ else if(KeyNum==1)
 {
 if(cursorplus==0)  		 P_Sp+=0.01;
 else if(cursorplus==16)  D_Sp+=0.01;
-else if(cursorplus==32)  P_Gy+=0.1;
+else if(cursorplus==32)  P_Gy+=0.01;
 else if(cursorplus==48)  I_Gy+=0.01;
 }
 else if(KeyNum==3)
 {
 if(cursorplus==0)  		 P_Sp-=0.01;
 else if(cursorplus==16)  D_Sp-=0.01;
-else if(cursorplus==32)  P_Gy-=0.1;
+else if(cursorplus==32)  P_Gy-=0.01;
 else if(cursorplus==48)  I_Gy-=0.01;
 }
 //保存数据，跳出while循环，返回一级菜单

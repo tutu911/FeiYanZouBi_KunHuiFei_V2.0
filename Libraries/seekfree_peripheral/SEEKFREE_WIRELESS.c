@@ -118,6 +118,13 @@ uint32 wireless_uart_read_buff (uint8 *buff, uint32 len)
 //  Sample usage:	
 //  @note       
 //-------------------------------------------------------------------------------------------------------------------
+
+
+uint32 wireless_uart_fifo_used(void)
+{
+    return fifo_used(&wireless_uart_fifo);
+}
+
 void wireless_uart_init(void)
 {
     WIRELESS_RTS_PIN = 0;

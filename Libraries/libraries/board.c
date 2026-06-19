@@ -182,9 +182,7 @@ void board_init(void)
 //重定义printf 数字 只能输出uint16
 char putchar(char c)
 {
-//	uart_putchar(DEBUG_UART, c);//把自己实现的串口打印一字节数据的函数替换到这里
 	uart_putchar(UART_3,c);
-
 	return c;
 }
 #endif

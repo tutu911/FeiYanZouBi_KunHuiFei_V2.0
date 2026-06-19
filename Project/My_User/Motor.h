@@ -17,7 +17,8 @@
 
 extern int16 L_speed;
 extern int16 R_speed;
-extern long Distance;
+extern uint32 Distance;
+extern uint8  Distance_Beishu;
 extern int16 Star_check;
 extern uint16 V_check;
 extern char Encoder_flag;
@@ -36,4 +37,6 @@ void PWM_SetCompareL(int dutyL);
 void PWM_SetCompareR(int dutyR);
 void My_PWM_Init(uint16 freq,uint16 duty);
 void My_PWM_Fuya_Init(uint16 freq,uint16 duty);
+void Fuya_stop(void);
+
 #endif

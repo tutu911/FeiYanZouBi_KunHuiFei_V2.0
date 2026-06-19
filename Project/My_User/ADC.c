@@ -5,7 +5,7 @@ uint16 ADC_Get[ADC_Num]={0};				    //ADC处理后原始值
 unsigned int ADC_Sum[ADC_Num]={0};			//ADC处理加和数组 
 unsigned char ADC_Temp[ADC_Num]={0};		//ADC处理交换数组 
 int ADC_Original[ADC_Num][ADC_Avenum] = {0};//ADC采集原始值
-uint32  ADC_Max[5]={150,150,150,150,150};	//ADC归一化最大值数组  //是否需要修改最大值
+uint32  ADC_Max[5]={140,210,150,120,140};	//ADC归一化最大值数组  //是否需要修改最大值
 
 /**
  * @description: 交换函数

@@ -43,26 +43,29 @@ static uint8 rx_idx = 0;
 static void Protocol_Echo(const char *key, float val)
 {
     uint8 i;
-    // 发送 "OK:" + key + "="
-    uart_putstr(UART_3, (uint8 *)"OK:");
-    uart_putstr(UART_3, (uint8 *)key);
-    uart_putchar(UART_3, '=');
+    uint8 buf[48];
+    uint8 pos = 0;
 
-    // 使用Num2str将float转为字符串(结果在Arry[]中)，然后发送
+    buf[pos++] = 'O';
+    buf[pos++] = 'K';
+    buf[pos++] = ':';
+    for (i = 0; key[i] != ''; i++)
+        buf[pos++] = key[i];
+    buf[pos++] = '=';
+
     Num2str(val);
     for (i = 0; i < 10; i++)
     {
-        if (Arry[i] == '\0') break;
-        uart_putchar(UART_3, Arry[i]);
+        if (Arry[i] == '') break;
+        buf[pos++] = Arry[i];
     }
-    uart_putstr(UART_3, (uint8 *)"\r\n");
+    buf[pos++] = '';
+    buf[pos++] = '';
+
+    wireless_uart_send_buff(buf, pos);
 }
 
 
-/**
- * @description: 解析单行指令，更新对应PID参数
- * @param line  以'\0'结尾的指令行
- */
 static void Protocol_ParseLine(char *line)
 {
     char *p;
@@ -79,7 +82,7 @@ static void Protocol_ParseLine(char *line)
     // 查找分隔符 '=' 或 ':' 或 ' '
     for (p = line; *p != '\0'; p++)
     {
-        if (*p == '=' || *p == ':' || *p == ' ')
+        if (*p == '=' || *p == ':')
         {
             sep = p;
             break;

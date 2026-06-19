@@ -126,19 +126,21 @@ uint8 printf_flag =0;
 int Speed_flag =0;
 int flag =0;
 char READY=0;
-int16 Distance_all=200;  //固定跑完的距离
+int16 Distance_all=150;  //固定跑完的距离
 float Gyro_now =0;
+extern float Now_gyro;       
+
 
 //标志位响应,初始化时无响应
 char MODE=NO_ONE;
 float Weight=0;
 int Speed_Test=0;     //电机测试时的目标速度
-int Target_Speed=300; //目标速度值
+int Target_Speed=600; //目标速度值
 float Target_Gyro=0;  //目标角速度
-uint16 Target_Pwmin=1500; //负压占空比（100HZ：1000-2000）
+uint16 Target_Pwmin=1300; //负压占空比（100HZ：1000-2000）
 int16 Delay_SP=0; 
 //float LIMIT_OUT=0;
-uint16 duty_set=2000;
+uint16 duty_set=3000; //编码器测试占空比
 
 
 //环岛部分参数
@@ -154,7 +156,9 @@ float LQ2=2.5;
 float LQ3=0.18;
 
 float Bat_data=0.0;
-uint8 Time_OK=1;
+uint16 Time_OK=1;
+uint8 Fuya_Start=0;
+uint8 Fuya_Ok=0;  //负压稳定标志位， 0：还未稳定 || 1：已稳定，退出计数
 void TM4_Isr() interrupt 20
 {
 
@@ -175,7 +179,6 @@ READY=0;
 }
 }
 
-/////////////////////
 /**
  * @description: 陀螺仪的角度解算
  */
@@ -192,32 +195,42 @@ actual_angle_z+=5*(velocity_z+last_velocity_z)/2;//解算得到的当前角度z
 last_velocity_z=velocity_z;
 }
 
-/////////////////
+
 /**
  * @description: 打印标志位启用判断||编码器当前速度更新
  */
-if (MODE == GYRO_TEST ||MODE == SPEED_TEST ||MODE == MOTOR_TEST ||MODE == TLY_Test)
+if (MODE == GYRO_TEST ||MODE == SPEED_TEST ||MODE == MOTOR_TEST ||MODE == TLY_Test ||MODE == NORMAL_RUN)
 {
 printf_flag =1;   
 Encoder_get_value();  
 }
 
-////////////////////////	
+
 Key_Star();
 V_Star();
-if(V_check>0&&Star_check>10)
-{
-//Time_OK++;
-//if(Time_OK>50) //定时中断1s后负压电机稳定，开始正常工作
-//{
  /**
  * @description:ADC采集与元素处理
  */	
 ADC_Sample();            //采集
 ADC_Average();           //平均
 ADC_Normalizing();       //归一化
-Cirque_Design();         //圆环
+//Cirque_Design();         //圆环
+Weight=12*(LQ1*(ADC_GYH[0]-ADC_GYH[4])+LQ2*(ADC_GYH[1]-ADC_GYH[3]))/(LQ1*(ADC_GYH[0]+ADC_GYH[4])+LQ3*fabs(ADC_GYH[1]-ADC_GYH[3]));	
 
+if(V_check==1&&Star_check>10)
+{
+
+//if(Fuya_Start == 0)  //负压待开启
+//{
+//  pwm_duty(PWMA_CH3P_P24,Target_Pwmin);  //负压启动
+//	Fuya_Start =1;  //标志位置1
+//}
+if(Fuya_Ok ==0)  //负压启动阶段，尚未稳定
+{Time_OK++;}
+if(Time_OK>400) //定时中断2s后负压电机稳定，开始正常工作
+{
+
+Fuya_Ok =1;
 ADC_BAT=adc_once(ADC_P16,ADC_12BIT);
 Bat_data=ADC_BAT/217.8;	            
 	
@@ -226,15 +239,13 @@ if(MODE==NORMAL_RUN&&Speed_flag==0)
 {
 static uint8 t_count=0;
 static float Gyro_set=0;
+static int Real_Speed =0; //实际速度环数值
 int Motor_L=0;//左轮占空比
 int Motor_R=0;//右轮占空比
 
-//编码器当前速度获取
-Encoder_get_value();
-
 if(t_count==2)
 {		
-Weight=12*(LQ1*(ADC_GYH[0]-ADC_GYH[4])+LQ2*(ADC_GYH[1]-ADC_GYH[3]))/(LQ1*(ADC_GYH[0]+ADC_GYH[4])+LQ3*fabs(ADC_GYH[1]-ADC_GYH[3]));	
+Weight=25*(LQ1*(ADC_GYH[0]-ADC_GYH[4])+LQ2*(ADC_GYH[1]-ADC_GYH[3]))/(LQ1*(ADC_GYH[0]+ADC_GYH[4])+LQ3*fabs(ADC_GYH[1]-ADC_GYH[3]));	
 //占空比限幅				
 if(Weight>32)
 {Weight=32;}
@@ -242,7 +253,7 @@ else if(Weight<-32)
 {Weight=-32;}
 imu660ra_get_gyro();
 Gyro_set=(imu660ra_gyro_transition(imu660ra_gyro_z)-Null_Shift_Z);//获取最新的当前角速度,单位°/s
-PID_Car_Gyro(Gyro_set,-Speed_Control(Weight));//获取新的转向占空比
+PID_Car_Gyro(Gyro_set,Speed_Control(Weight));//获取新的转向占空比
 t_count=0;
 }
 t_count++;
@@ -251,15 +262,19 @@ Distance_count();
 if(Distance>Distance_all*10000||(ADC_GYH[0]+ADC_GYH[1]+ADC_GYH[3]+ADC_GYH[4])<10||(ADC_GYH[0]+ADC_GYH[2]+ADC_GYH[4])<10)
 {Motor_stop();}
 
+//采用软起动的方式，保护电机
+if(Real_Speed <Target_Speed)
+{Real_Speed += 10;}
+
 if(Car_pwm_gyro>=0)
 {
-Motor_L=PID_Car_Speed(Target_Speed)-Car_pwm_gyro;
-Motor_R=PID_Car_Speed(Target_Speed)+Car_pwm_gyro;
+Motor_L=PID_Car_Speed(Real_Speed)-Car_pwm_gyro;
+Motor_R=PID_Car_Speed(Real_Speed)+Car_pwm_gyro;
 }
 else if(Car_pwm_gyro<0)
 {
-Motor_L=PID_Car_Speed(Target_Speed)-Car_pwm_gyro;
-Motor_R=PID_Car_Speed(Target_Speed)+Car_pwm_gyro;
+Motor_L=PID_Car_Speed(Real_Speed)-Car_pwm_gyro;
+Motor_R=PID_Car_Speed(Real_Speed)+Car_pwm_gyro;
 }
 
 //占空比限幅				
@@ -286,34 +301,26 @@ static uint8 t_count=0;
 static float Gyro_Get_Now=0;
 int Motor_L=0;//左轮占空比
 int Motor_R=0;//右轮占空比
-//编码器当前速度更新
-Encoder_get_value();
 
-imu660ra_get_gyro();
-tly_z+=imu660ra_gyro_z;
-tly=(float)tly_z/250000*90;
-	
 Distance_count();	
+imu660ra_get_gyro ();	
+Now_gyro=(imu660ra_gyro_transition(imu660ra_gyro_z)-Null_Shift_Z);
 	
 if(t_count==2)
 {
 imu660ra_get_gyro ();	
 Gyro_Get_Now=(imu660ra_gyro_transition(imu660ra_gyro_z)-Null_Shift_Z);//获取最新的当前角速度,单位°/s
-if(Distance>40000)
-{PID_Car_Gyro(Gyro_Get_Now,600);}//获取新的转向占空比
-else {PID_Car_Gyro(Gyro_Get_Now,0);}
+if(Distance>70000 &&Distance < 650000)
+{PID_Car_Gyro(Gyro_Get_Now,250);}//获取新的转向占空比
+else if (Distance < 70000)
+{PID_Car_Gyro(Gyro_Get_Now,0);}
 t_count=0;
 }
 t_count++;
 
-if(tly>1350||tly<-1350)
-{Motor_stop();}
-
-Delay_SP++;
-if(Delay_SP>200)
-{Speed_Test=600;}
-else
-{Speed_Test=0;}
+//采用软起动的方式，保护电机
+if(Speed_Test <1000)
+{Speed_Test += 10;}
 
 Motor_L=PID_Car_Speed(Speed_Test)-Car_pwm_gyro;
 Motor_R=PID_Car_Speed(Speed_Test)+Car_pwm_gyro;
@@ -331,6 +338,9 @@ Motor_R=-10000;
 //更新速度	
 PWM_SetCompareL(Motor_L);
 PWM_SetCompareR(Motor_R);	
+
+if(Distance>650000)
+{Motor_stop();}
 }
 
 /**
@@ -338,8 +348,14 @@ PWM_SetCompareR(Motor_R);
  */
 else if(MODE==TLY_Test)
 {
-      imu660ra_get_gyro();
-      Gyro_now=(imu660ra_gyro_transition(imu660ra_acc_z)-Null_Shift_Z);
+imu660ra_get_gyro();
+Gyro_now=(imu660ra_gyro_transition(imu660ra_gyro_z)-Null_Shift_Z);
+tly+=Gyro_now*5/1000;
+if(tly>=360.0)
+{
+	tly_z +=1;
+	tly -=360.0;
+}
 }
 /**
  * @description: 电机速度环测试
@@ -349,42 +365,42 @@ else if(MODE ==SPEED_TEST&&Speed_flag==0)
 static uint8 t_count =0;
 int Motor_L =0;   //左轮占空比
 int Motor_R =0;   //右轮占空比
+	
 if(t_count ==2)
 {
    imu660ra_get_gyro();
-   Gyro_now=(imu660ra_gyro_transition(imu660ra_acc_z)-Null_Shift_Z);
+   Gyro_now=(imu660ra_gyro_transition(imu660ra_gyro_z)-Null_Shift_Z);
    PID_Car_Gyro(Gyro_now,0); //获取新的转向占空比
    t_count=0;
 }
    t_count++;
 
-   Distance_count();
-   if(Distance>140000) //当累计的里程超过一定距离就停车
-   {Motor_stop();}
-
    //采用软起动的方式，保护电机
    if(Speed_Test <1000)
-   {Speed_Test += 10;}
-
+   {Speed_Test += 50;}
+   
    Motor_L =PID_Car_Speed(Speed_Test)-Car_pwm_gyro; //占空比赋值
    Motor_R =PID_Car_Speed(Speed_Test)+Car_pwm_gyro;
-    
-//	 Motor_L =2000-Car_pwm_gyro; //占空比赋值
-//   Motor_R =2000+Car_pwm_gyro;
+
 
    //占空比限幅
-   if(Motor_L>10000)
-   {Motor_L=10000;}
-   if(Motor_R>10000)
-   {Motor_R=10000;}
-   if(Motor_L<-10000)
-   {Motor_L=-10000;}
-   if(Motor_R<-10000)
-   {Motor_R=-10000;}
+   if(Motor_L>4000)
+   {Motor_L=4000;}
+   if(Motor_R>4000)
+   {Motor_R=4000;}
+   if(Motor_L<-4000)
+   {Motor_L=-4000;}
+   if(Motor_R<-4000)
+   {Motor_R=-4000;}
 
    //电机占空比更新
    PWM_SetCompareL(Motor_L);
    PWM_SetCompareR(Motor_R);   
+	 
+	 Distance_count();
+   if(Distance>60000) //当累计的里程超过一定距离就停车
+   {Motor_stop();}
+	 
 }	
 
 /**
@@ -392,11 +408,18 @@ if(t_count ==2)
  */
 else if (MODE==MOTOR_TEST&&Speed_flag==0)
 {
+Distance_count();
+if(Distance_Beishu>4) //当累计的里程超过一定距离就停车
+{Motor_stop();}
+	
+if(duty_set<4000)	
+{duty_set+=5;} //更新速度
+
+imu660ra_get_gyro();
+Gyro_now=(imu660ra_gyro_transition(imu660ra_gyro_z)-Null_Shift_Z); //角速度测试
+
 PWM_SetCompareL(duty_set);
-PWM_SetCompareR(duty_set);		
-if(duty_set<3000)	
-{duty_set+=5;}
-//更新速度	
+PWM_SetCompareR(duty_set);	
 }
 
 /**
@@ -406,12 +429,14 @@ else if(MODE==NO_ONE)
 {
 PWM_SetCompareL(0);
 PWM_SetCompareR(0);		
-Speed_flag=1;			
+Speed_flag=1;
+//Fuya_stop();	
 }
 
 
 TIM4_CLEAR_FLAG; //清除中断标志
 
+}
 }
 }
 

@@ -37,7 +37,7 @@
 #define WIRELESS_UART_RX_PIN    	UART3_RX_P00
 #define WIRELESS_TIMER_N    		TIM_2
 #define WIRELESS_UART_BAUD   		115200
-#define WIRELESS_DATA_BUF           S4BUF
+#define WIRELESS_DATA_BUF           S3BUF
 
 
 
@@ -53,5 +53,7 @@ void wireless_uart_callback(void);
 
 uint32 wireless_uart_send_buff(uint8 *buff, uint32 len);
 uint32 wireless_uart_read_buff(uint8 *buff, uint32 len);
+uint32 wireless_uart_fifo_used(void);
+
 
 #endif 
