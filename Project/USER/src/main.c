@@ -66,6 +66,13 @@ while(1)
 		adc_process_flag=0;
 	}
 
+	// MODE control handler (triggered by ISR, runs once per 5ms)
+	if(mode_process_flag == 1)
+	{
+		Mode_Handler();
+		mode_process_flag = 0;
+	}
+
 //Êý¾Ý´òÓ¡
 if(printf_flag==1&&MODE!=NO_ONE)
 {

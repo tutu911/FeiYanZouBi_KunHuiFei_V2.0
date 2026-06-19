@@ -39,5 +39,6 @@ void PWM_SetCompareR(int dutyR);
 void My_PWM_Init(uint16 freq,uint16 duty);
 void My_PWM_Fuya_Init(uint16 freq,uint16 duty);
 void Fuya_stop(void);
+void Mode_Handler(void);
 
 #endif
