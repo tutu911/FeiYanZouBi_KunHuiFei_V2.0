@@ -54,7 +54,7 @@ void PID_Car_Gyro(float Real_gyro,float target_gyro)
 {
 	Now_gyro=Real_gyro;//更新当前的真实角速度值
 	err_gyro=target_gyro-Now_gyro;//计算PID获得增量式PID的速度更新量
-	Car_pwm_gyro-=(P_Gy*(err_gyro-err_last_gyro)+I_Gy*err_gyro);//更新转向环输出占空比//默认P8 I0.8//400 9 0.5
+	Car_pwm_gyro+=(P_Gy*(err_gyro-err_last_gyro)+I_Gy*err_gyro);//更新转向环输出占空比//默认P8 I0.8//400 9 0.5
 	err_last_gyro=err_gyro;
 	if(Car_pwm_gyro>10000)Car_pwm_gyro=10000;
 	else if(Car_pwm_gyro<-10000)Car_pwm_gyro=-10000;

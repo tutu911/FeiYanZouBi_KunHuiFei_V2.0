@@ -46,7 +46,7 @@ Big_Bit=0;
 char Cirque_Design(void)
 {
 //中电感判断，编码器开始积分
-if(Cirque_Flag==Cirque_NO&&ADC_GYH[2]>=70) //这里的参数“70”后期需要进行调试
+if(Cirque_Flag==Cirque_NO&&ADC_GYH[2]>=80) //这里的参数“70”后期需要进行调试
 {		
 ICM_START();	
 Cirque_Flag=Cirque_BEGIN;

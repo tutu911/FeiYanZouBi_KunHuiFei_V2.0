@@ -6,9 +6,11 @@ extern int Speed_flag;
 
 
 //函数变量
-long Distance=0;		//距离积分
+uint32 Distance=0;		//距离积分
+uint8  Distance_Beishu=0; // 20000的倍数
 int16 Star_check=0;		//启动标志
 uint16 V_check=0;		//电压标志
+uint8  adc_process_flag=0; //ADC post-process flag: ISR signals main loop
 int16 L_speed=0;		//左轮速度
 int16 R_speed=0;		//右轮速度
 char Encoder_flag=0;	//编码器计数标志
@@ -133,10 +135,30 @@ Speed_flag=1;
 }
 
 /**
+ * @description: 电机停转标志位
+ */
+void Fuya_stop(void)
+{
+	static uint16 End_Count =0;
+	if(End_Count<600)
+	{End_Count++;}
+	else
+	{pwm_duty(PWMA_CH3P_P24,0);}
+	
+}
+
+/**
  * @description: 距离积分
  */
 void Distance_count()
-{Distance+=(R_speed+L_speed)/2;}
+{
+	Distance+=(fabs(R_speed)+fabs(L_speed))/2;
+  if(Distance > 20000)
+	{
+		Distance -=20000;
+		Distance_Beishu +=1;
+	}
+}
 
 /**
  * @description: 启动按键检测
@@ -155,8 +177,10 @@ Star_check++;
 void V_Star()
 {
 ADC_BAT=adc_once(ADC_P16,ADC_12BIT);  
-if(ADC_BAT/217.8>11.0)
-V_check++;
+if(ADC_BAT/217.8>11.5)
+{V_check=1;}
+else
+{V_check=0;}
 }
 
 

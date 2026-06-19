@@ -425,11 +425,6 @@
               <FilePath>..\..\Libraries\seekfree_libraries\zf_pwm.c</FilePath>
             </File>
             <File>
-              <FileName>zf_pwm.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\Libraries\seekfree_libraries\zf_pwm.h</FilePath>
-            </File>
-            <File>
               <FileName>zf_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\seekfree_libraries\zf_spi.c</FilePath>
@@ -474,6 +469,11 @@
         <Group>
           <GroupName>seekfree_peripheral</GroupName>
           <Files>
+            <File>
+              <FileName>zf_pwm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Libraries\seekfree_libraries\zf_pwm.h</FilePath>
+            </File>
             <File>
               <FileName>headfile.h</FileName>
               <FileType>5</FileType>
