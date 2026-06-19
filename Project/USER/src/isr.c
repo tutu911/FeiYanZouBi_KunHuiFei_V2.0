@@ -203,7 +203,7 @@ if (MODE == GYRO_TEST ||MODE == SPEED_TEST ||MODE == MOTOR_TEST ||MODE == TLY_Te
 {
 printf_flag =1;   
 Encoder_get_value();
-	Distance_count();           // moved here: after encoder read, no V_check gate
+Distance_count();           // moved here: after encoder read, no V_check gate
 }
 
 
@@ -213,7 +213,7 @@ V_Star();
  * @description:ADC采集与元素处理
  */	
 ADC_Sample();            // raw sample (post-process -> main loop)
-	adc_process_flag=1;         // signal main loop for ADC_Average/Normalizing/Weight
+adc_process_flag=1;         // signal main loop for ADC_Average/Normalizing/Weight
 
 if(Star_check>10)
 {
@@ -438,19 +438,16 @@ Speed_flag=1;
 //Fuya_stop();	
 }
 
-
-TIM4_CLEAR_FLAG; //清除中断标志
 	}  // end if(V_check==0) else
 }
 }
-	else
-	{
-	// Star_check<=10: not started -> ensure motors stopped
+else
+{
+	// Star_check<=10: not started -> stop motors, keep Speed_flag unchanged
 	PWM_SetCompareL(0);
 	PWM_SetCompareR(0);
-	Speed_flag=1;
-	TIM4_CLEAR_FLAG;
-	}
+}
+	TIM4_CLEAR_FLAG; //清除中断标志
 }
 
 //void  INT0_Isr()  interrupt 0;
